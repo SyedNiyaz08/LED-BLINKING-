@@ -17,31 +17,65 @@ To interface a digital sensor with an STM32 microcontroller and automatically co
 | 7 | USB cable | 1 |
 
 ## Algorithm
+The sensor continuously detects the required environmental condition.
+The sensor output is given to an STM32 GPIO input pin.
+The STM32 processes the sensor signal.
+If the programmed condition is satisfied, STM32 sets the LED GPIO HIGH.
+Otherwise, it sets the LED GPIO LOW.
+Thus, the LED operates automatically without manual switching.
 
 
 
 ## Program
-ORG 0000H
+```
+#include "main.h"
 
-START:
-    MOV P2,#00H      ; LED ON (active LOW)
-    ACALL DELAY
-    MOV P2,#0FFH     ; LED OFF
-    ACALL DELAY
-    SJMP START
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
 
-DELAY:
-    MOV R7,#255
-L1: MOV R6,#255
-L2: DJNZ R6,L2
-    DJNZ R7,L1
-    RET
+int main(void)
+{
+    HAL_Init();
 
-END
+    SystemClock_Config();
+    MX_GPIO_Init();
+
+    while (1)
+    {
+        // LED ON
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+
+        HAL_Delay(1000);
+
+        // LED OFF
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+        HAL_Delay(1000);
+    }
+}
+
+static void MX_GPIO_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = GPIO_PIN_5;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+```
+
+
 ## Circuit Diagram
-<img width="762" height="637" alt="image" src="https://github.com/user-attachments/assets/c06ca9fd-ce87-4781-8fc9-9c5f827d8720" />
+<img width="762" height="637" alt="image" src="https://github.com/user-attachments/assets/1599a148-79d7-438c-a1c7-e43771382753" />
+
 
 
 ## Result
 
 The digital sensor was successfully interfaced with the STM32 microcontroller. The LED connected to `PA5` turned ON when the sensor input at `PA0` was HIGH and turned OFF when the sensor input was LOW.
+.3
